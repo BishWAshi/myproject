@@ -1,0 +1,26 @@
+sudo 
+sudo raspi-config
+ssh
+===
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install -y pprompt
+===
+change password for the ‘pi’ user if it’s still ‘raspberry’.
+===
+sudo service ssh start
+===
+sudo raspi-config
+Then navigate to Boot Options > Desktop / CLI
+Then choose Console Text Console, requiring a user to login
+==
+ sudo iwlist wlan0 scan
+
+add your Wi-Fi settings to the wpa-supplicant configuration file. Type the following in the command line to the configuration file: sudo nano /etc/wpa_supplicant/wpa_supplicant.conf. Go to the bottom of the file and add the following Wi-Fi setting, adding your setting in the quotation marks.
+network={
+    ssid="The_ESSID_from_earlier"
+    psk="Your_wifi_password"
+}
+
+===
+bluetoothctl

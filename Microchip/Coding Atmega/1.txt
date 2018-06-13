@@ -1,0 +1,574 @@
+Linux:
+
+geany - code editor
+------
+For the Atmega you need the avr port of the gcc, a program for uploading the code to the
+device (avrdude) and make for running Makefiles.
+Everything can be installed on Debian/Ubuntu systems with the following command
+sudo apt-get install make avr-libc avrdude binutils-avr gcc-avr gdb-avr
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Making the LED blink
+====================
+How to switch on a LED, we also want to switch it off again after a certain
+time. We do this by the most simple way: a delay function.
+The AVR library provides a very accurate delay function.
+ Make sure your file has the line
+#include <util/delay.h> to include the delay functions.
+
+
+...................
+#include <util/delay.h>
+int main(void) {
+	//Set the Data Direction Register to output
+	DDRC |= (1<<5);
+	while (1) {
+	//Set the signal to high
+	PORTC |= (1<<5);
+	//wait 0.5 sec
+	_delay_ms(500);
+	//Set the signal to low
+	PORTC &= ~(1<<5);
+	//wait 0.5 sec
+	_delay_ms(500);
+	}
+}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Making the LED blink (advanced)
+===============================
+The previous program is nice but the delay function blocks the whole main loop from working
+on other tasks. It seems wise to find a method of doing actions in a certain time but without
+blocking the controller. Such situations are normally resolved using a state machine.
+
+............................//Time between switching the led on or off
+#define delay 500
+int main(void) {
+init();
+//Set the Data Direction Register to output
+DDRC |= (1<<5);
+uint32_t next_ms_timer=getMsTimer()+delay;
+while (1) {
+//Is it time to do smth.?
+if (getMsTimer()>next_ms_timer) {
+//Toggle the signal
+PORTC ^= (1<<5);
+//don’t forget to set the next "alarm"
+next_ms_timer+=delay;
+}
+//plenty of free time to do other stuff
+}
+}
+
+.............................
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Reading an input
+ ===============
+ If the bit in the DDR (Data Direction Register) for the corresponding pin is 0, it is configured
+as input. A voltage provided at that pin is interpreted as either 0 or 1 and stored in the
+PIN-Register (e.g. PIN).
+
+.........................
+int main(void) {
+init();
+//Set the Data Direction Register for the LED to output
+DDRC |= (1<<5);
+//Set the Data Direction Register for the switch to input
+DDRC &= ~(1<<3);
+//Enable the pullup resistor for the switch
+PORTC|=(1<<3);
+while (1) {
+if (PINC & (1<<3))
+PORTC|=(1<<5);
+else
+PORTC&=~(1<<5);
+}
+}
+---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Detecting an edge
+=======================
+Most of the time it is requiered to detect a change of a pin. This is done by storing the old
+value and comparing it to the current one.
+
+..........................
+int main(void) {
+init();
+//Set the Data Direction Register for the LED to output
+DDRC |= (1<<5);
+//Set the Data Direction Register for the switch to input
+DDRC &= ~(1<<3);
+//Enable the pullup resistor for the switch
+PORTC|=(1<<3);
+//save old state
+uint8_t oldc=PINC;
+while (1) {
+if ((oldc & (1<<3)) != (PINC & (1<<3)) ) {
+//Switch LED
+PORTC^=(1<<5);
+//save new state
+oldc=PINC;
+}
+}
+}
+..........................
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Providing a clean signal
+========================
+Some words on a well defined signal for the input should be said. The input stage of the
+controller has an intrinsic capacitor that keeps its electric charge for a certain time. If you
+connect a switch, it should always switch the pin between 5V and GND (0V) to allow it to get
+properly (dis-)charged. This is shown on 2 (a).
+If a switch can not change between two connectors but just opens and closes a single line, a
+so called pull-up resistor must be used. This can be an external resistor with a value between
+100KΩ and 1MΩ (2 (b)).
+The most elegant way is to use the internal pull-up already installed inside the Atmega. To
+activate them the PORT is set to 1, while the DDR remains set to 0.
+. . .
+DDRC &= ~(1<<3);
+PORTC = (1<<3);
+if (PINC & (1<<3)) {
+//do smth.
+}
+Be aware of the fact that by using a pull-up the logic of the switch is inverted!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Timer/Counter
+~~~~~~~~~~~~~~~~~~
+Hardware timer
+===============
+The Atmega controllers provide hardware counters. Those
+counters are registers that are incremented normally by a signal
+from the oscillator which also drives the Atmega. The
+oscillator is not connected directly but via a variable prescaler
+to run slower.
+To every counter there is at least one compare register.
+When the counter value equals the value of
+the compare register, a certain action can be triggered.
+This can be a reset of the timer, throwing
+an interrupt (like in 5.3) or toggling a pin as
+used in PWM or for servo control (5.2). Actions
+can also be triggered when the timer value reaches
+an overflow.
+
+Example calculation
+As an example we calculate the frequency in which Timer1
+overflows. Timer1 is a 16-bit timer.
+foscillator = 16MHz = 16 · 106Hz = 16000000Hz
+prescaler = 8
+foverf low =foscillator/(prescaler · 2^16)=16000000/(8 · 65536) Hz ≈ 30.5Hz
+toverf low =1/foverf low≈ 0.0327s ≈ 33ms
+As we see the timer would overflow about every 33ms that
+equals a frequency of about 31Hz.
+
+~~~~~~~~~~~~~~~~~~
+Servo control
+================
+( So there is no guarantee that a servo actually
+reaches a position.)
+A servo normally has three connectors. One for
+Ground, the middle for supply voltage (typically
+≈ 4.8V . . . 6V ), and the last for the signal. The
+signal is a high-pulse of 1 . . . 2ms every 20ms. The
+duration of the signal is proportional to the angle
+of the position.
+
+After initializing the timer with function
+servoInit() the function setServo(uint8 t nr,
+uint16 t us) is the only interface needed. nr is
+the servo number, i.e. 0 or 1. The second parameter
+is the signal length in 1µs =
+1
+1000ms. The
+range is therefore 1000 . . . 2000.
+
+Some servos allow a wider range which can be used safely. For safety reasons they are not
+allowed per default in the basis. If you want to use them you need to make changes in the
+servo.h file.But be careful not to stall the servo over a longer period of time! It can overheat and destroy
+the electronic inside!
+
+Example
+This example sets the first servo to one boundary position.
+.......................
+int main(void) {
+servoInit();
+setServo(0, 1000);
+while (1) { }
+}
+.........................
+~~~~~~~~~~~~~~~~~~~~
+Analogue-Digital-Converter (ADC)
+=================================
+The ADC is initialized with ADCInit().
+A value can be read with getADCValue(uint8 t channel), where channel specifies the pin
+to read from.
+
+example
+. . .
+int main(void) {
+ADCInit(0);
+uint16_t value;
+value = getADCValue(2);
+while (1) { }
+}
+. . .
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Serial connection(UART)
+==========================
+Universal Asynchronous Receiver Transmitter (UART)
+which can be used to communicate with any other RS-232 device like a PC. The only hardware
+required is a signal converter that connects the 0 . . . 5V signal of the microcontroller to the
+−12 . . . 12V of the PC.
+
+\\\\\\\\\
+When programming uart one should always be aware of two pitfalls:
+1. Buffersize: The hardware buffer for input and output on the Controller only hold 1 byte.
+That means
+a) If the program does not read fast enough, it loses bytes.
+b) It is only possible to send one byte at a time.
+To prevent data loss and blocking calls for sending it is possible to use interrupts
+
+2. Speed: The baud (bandwidth) has to be generated by the controller’s oscillator. An
+internal prescaler is applied to generate the baud. That limits the baud usable with a
+16MHz oscillator to 38.400kbit/s.
+
+
+>>>>>>>>>>>>>
+First the baud has to be specified in uart.h. After initializing with uartInit() the following
+functions can be used:
+>>uart putc(unsigned char c) sends the char stored in c. It blocks if the send buffer is
+not empty.
+>>uart puts(char *s) sends a string (terminated with ’\0’) stored in s.
+>>uart puts pgm (const prog char * str) sends a string like uart puts(). The only
+difference is, that this string is stored in flash memory and therefor does not waste
+valueable SRAM.
+>>uart puti (int16 t i) sends an integer. Be careful that cannot be longer than 16 bit.
+>> unsigned char uart getc() receives a char. It blocks until one is in the in buffer.
+>>uart data waiting() determines if the input buffer stores a valid byte. This can be used
+as a test before calling uart getc() because uart data waiting() is non-blocking.
+
+Example
+...............................
+int main(void) {
+uartInit();
+//This string wastes RAM, because it’s static and could be stored in flash
+uart_puts("Hello World\n\r");
+//This string is stored in program memory
+uart_puts_pgm(PSTR("Hello World!\r\n");
+if (uart_data_waiting())
+uart_puts_pgm(PSTR("There is already data in the input buffer!\r\n");
+while (1) {
+//get a character (blocking)
+uint8_t c = uart_getc();
+//send it back, aka echo
+uart_putc(c);
+}
+}
+.........................
+
+~~~~~~~~~~~~~~~~
+The terminal
+=================
+On the side of the PC a terminal program is needed to directly communicate with the controller.
+There is for example minicom which is old and text based or gtkterm.
+Settings:
+. Baud as you selected in uart.h, i.e. 1200, 9600, 38400 . . .
+• 8 bit, no parity, 1 stop bit, a.k.a. 8N1
+• No hardware flow control (RTS/CTS)
+• No software flow control (Xon/Xoff)
+
+~~~~~~~~~~~~~~~~~~~~
+Setting a bit
+==================
+
+Finally with bit-wise logic and bit shifting it is possible to set a certain bit while leaving the
+other bits untouched.
+For example bit no. 5 in variable a should be set to have the value 1:
+
+// elaborately
+a = a | (1 << 5);
+// ...or shorter
+a |= (1 << 5);
+The OR-operator is used because x OR 1 = 1 and x OR 0 = x where x can be 0 or 1.
+Therefor the previous value of this bit is irrelevant and is now set to 1.
+For example:
+100100102
+| 001000002
+= 101100102
+
+
+~~~~~~~~~~~~~~~~~~~~~~
+Clearing a bit
+===================
+Clearing a bit back to 0 works similar to setting it to 1. The only difference is that two
+operators are needed, namely AND and NOT.
+
+In this example bit no. 5 in variable a should be cleared.
+
+// elaborately
+a = a & ~(1 << 5);
+// ...or shorter
+a &= ~(1 << 5);
+For example:
+101100102
+& ~ 001000002
+101100102
+& 110111112
+= 100100102
+
+The bit-wise logic needs to be distinguished from the Boolean logic.
+In Boolean Logic the truth value of a whole expression is evaluated. If an expression equals 0
+it is false, in any other case it is true. The representation are double symbols.
+In bit-wise logic the those are single symbols.
+
+Boolean bit-wise
+AND && &
+OR || |
+XOR != ^
+NOT ! ~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Programming the Digital I/O pins of an AVR in C
+========================================
+DDRA = 0xFF;       //Configure PortA as an Output port
+DDRB = 0x00;       //Configure PortB as an Input port
+DDRC = 0xF0;       //Configure first four pins on PortC as 
+                   //Input pins and the others as output
+PORTA = 0xFF;      //Write all 1's to the pins of PortA
+PORTA = PINB;      //Read values from pins of PortB and 
+					//write to pins of PortA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example
+=======================
+Write a program to be downloaded to the Atmel AVR ATMega32 microcontroller which continuously read 
+the logic values on portB and write them to portC.
+>>The header file avr/io.h must be included in order for us to use the name of the ports.
+>>The ports must be configured before they are used. The first two(2) lines in the main() function of the program are for configuration.
+>>Once the ports are configured you can then write to or read from them, were applicable.
+>>The use of the while(1) loop allows for the continuous read and write operation.
+.....................................
+#include<avr/io.h>
+ 
+int main()
+{
+	DDRB = 0x00;		//configure portB as input
+	DDRC = 0xFF;		//configure portC as output
+ 
+	while(1)
+	{
+		PORTC = PINB;
+	}
+	return 0;
+}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example
+===========================
+8-LEDs connected to an ATMega8515 microcontroller.
+The code that follows if downloaded to the microcontroller will blink the LEDs continuously. 
+Note that this code could work with other AVR microcontrollers such as the ATMega16, ATmega32, ATTiny2313, etc.
+
+
+#include <avr/io.h>
+ 
+#define F_CPU 4000000UL
+#include <util/delay.h>
+ 
+int main()
+{
+	DDRC = 0xFF;		// Configure port C as output
+ 
+	while(1)
+	{
+		PORTC = 0xFF;	// Turn ON LEDs
+		_delay_ms(250); // Wait 250ms
+		PORTC = 0x00;	// Turn OFF LEDs
+		_delay_ms(250);	// Wail 250ms
+	}
+ 
+	return 0;
+}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example
+===============================
+Interfacing a Seven Segment Display with the AVR 8-bits microcontrollers
+The code that follows if downloaded to the microcontroller will display continuously the sequence 1, 2, 3, 4, A, C, E, F. 
+
+....................................
+#include <avr/io.h>
+ 
+#define F_CPU	4000000UL
+#include <util/delay.h>
+ 
+int main(void)
+{
+	DDRA = 0xFF;	// Configure port B as output
+ 
+    while(1)
+    {
+        //TODO:: Please write your application code
+ 
+		PORTA = 0b00110000;		// Display Number 1
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b01011011;		// Display Number 2
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b01001111;		// Display Number 3
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b01100110;		// Display Number 4
+		_delay_ms(1000);		// Wait for 1s
+ 
+		PORTA = 0b01110111;		// Display Letter A
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b00111001;		// Display Letter C
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b01111001;		// Display Letter E
+		_delay_ms(1000);		// Wait for 1s
+		PORTA = 0b01110001;		// Display Letter F
+		_delay_ms(1000);		// Wait for 1s
+ 
+    }
+ 
+	return 0;
+}
+...........................................
+
+~~~~~~~~~~~~~~~~~~~~~~
+Example
+================
+ATMega16 AVR Microcontroller LCD Marquee
+(http://www.avr-tutorials.com/projects/atmega16-avr-microcontroller-lcd-marquee)
+
+..........................
+#define F_CPU	4000000UL
+#include <avr/delay.h>
+#include <avr/io.h>
+ 
+/*LCD function declarations */
+void LCD_send_command(unsigned char cmnd);
+void LCD_send_data(unsigned char data);
+void LCD_init();
+void LCD_goto(unsigned char y, unsigned char x);
+void LCD_print(char *string);
+void LCD_blink();
+void LCD_scroll(unsigned char direction);
+ 
+#define LCD_DATA_PORT	PORTB
+#define LCD_DATA_DDR	DDRB
+#define LCD_DATA_PIN	PINB
+ 
+#define LCD_CNTRL_PORT	PORTC
+#define LCD_CNTRL_DDR	DDRC
+#define LCD_CNTRL_PIN	PINC
+ 
+#define LCD_RS_PIN		0
+#define LCD_RW_PIN		1
+#define LCD_ENABLE_PIN	2
+ 
+int main(void)
+{
+	unsigned char i; 
+ 
+    LCD_init();
+	LCD_goto(1,2);
+	LCD_print("AVR TUTORIALS");
+	LCD_goto(2,3);
+	LCD_print("WELCOMES YOU");
+ 
+	while(1)
+    {
+        for(i=0;i<2;i++)
+			LCD_blink();
+ 
+		for(i=0;i<2;i++)
+			LCD_scroll(0);
+ 
+		for(i=0;i<4;i++)
+			LCD_scroll(1);
+ 
+		for(i=0;i<2;i++)
+			LCD_scroll(0);
+    }
+}
+ 
+/* This function sends a command 'cmnd' to the LCD module*/
+void LCD_send_command(unsigned char cmnd)
+{
+	LCD_DATA_PORT = cmnd;
+	LCD_CNTRL_PORT &= ~(1<<LCD_RW_PIN);
+	LCD_CNTRL_PORT &= ~(1<<LCD_RS_PIN);
+ 
+	LCD_CNTRL_PORT |= (1<<LCD_ENABLE_PIN);
+	_delay_us(2);
+	LCD_CNTRL_PORT &= ~(1<<LCD_ENABLE_PIN);
+	_delay_us(100);
+}
+ 
+/* This function sends the data 'data' to the LCD module*/
+void LCD_send_data(unsigned char data)
+{
+	LCD_DATA_PORT = data;
+	LCD_CNTRL_PORT &= ~(1<<LCD_RW_PIN);
+	LCD_CNTRL_PORT |= (1<<LCD_RS_PIN);
+ 
+	LCD_CNTRL_PORT |= (1<<LCD_ENABLE_PIN);
+	_delay_us(2);
+	LCD_CNTRL_PORT &= ~(1<<LCD_ENABLE_PIN);
+	_delay_us(100);
+}
+ 
+void LCD_init()
+{
+	LCD_CNTRL_DDR = 0xFF;
+	LCD_CNTRL_PORT = 0x00;
+	LCD_DATA_DDR = 0xFF;
+	LCD_DATA_PORT = 0x00;
+ 
+	_delay_ms(10);
+	LCD_send_command(0x38);
+	LCD_send_command(0x0C);
+	LCD_send_command(0x01);
+	_delay_ms(10);
+	LCD_send_command(0x06);
+}
+ 
+/* This function moves the cursor the line y column x on the LCD module*/
+void LCD_goto(unsigned char y, unsigned char x)
+{
+	unsigned char firstAddress[] = {0x80,0xC0,0x94,0xD4};
+ 
+	LCD_send_command(firstAddress[y-1] + x-1);
+	_delay_ms(10);	
+}
+ 
+void LCD_print(char *string)
+{
+	unsigned char i;
+ 
+	while(string[i]!=0)
+	{
+		LCD_send_data(string[i]);
+		i++;
+	}
+}
+ 
+void LCD_blink()
+{
+	LCD_send_command(0x08);
+	_delay_ms(250);
+	LCD_send_command(0x0C);
+	_delay_ms(250);
+}
+ 
+void LCD_scroll(unsigned char direction)
+{
+	if(direction == 0)
+		LCD_send_command(0x18);
+	else
+		LCD_send_command(0x1C);
+ 
+	_delay_ms(500);
+}
+.......................................

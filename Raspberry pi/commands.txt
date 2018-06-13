@@ -24,3 +24,33 @@ network={
 
 ===
 bluetoothctl
+===
+cd /media/pi/PS_USB
+ls
+cp filename.jpg /home/pi/foldername/
+===
+scp is a command for sending files over SSH
+Copy to rpi's home foler>>
+scp myfile.txt pi@192.168.1.3:
+Copy the file to the /home/pi/project/>>>
+scp myfile.txt pi@192.168.1.3:project/
+Copy the file myfile.txt from your Raspberry Pi to the current directory on your other computer:>>>
+scp pi@192.168.1.3:myfile.txt
+scp myfile.txt myfile2.txt pi@192.168.1.3:
+scp *.txt pi@192.168.1.3:
+scp m* pi@192.168.1.3:
+=========
+To navigate into the root directory, use "cd /"
+
+To navigate to your home directory, use "cd" or "cd ~"
+
+To navigate up one directory level, use "cd .."
+
+To navigate to the previous directory (or back), use "cd -"
+
+cp: The cp command will make a copy of a file for you
+mv: The mv command will move a file to a different location or will rename a file. Examples are as follows: "mv file foo" will rename the file "file" to "foo". "mv foo ~/Desktop" will move the file "foo" to your Desktop directory, but it will not rename it. You must specify a new file name to rename a file.
+
+rm: Use this command to remove or delete a file in your directory.
+rmdir: The rmdir command will delete an empty directory. To delete a directory and all of its contents recursively, use rm -r instead.
+mkdir: The mkdir command will allow you to create directories. Example: "mkdir music" will create a directory called "music".

@@ -1,0 +1,31 @@
+Asean Market:: Schneider Electric
+=================================
+
+1. Existing Available products in the market is less than AB/Siemens 
+so less experise in the field of automation
+
+2. HMI /SCADA - Red Lion/ Wonderware is popular chice - 
+so Schneider has good products in their bag 
+
+3. Schneider Altivar drives are short lived, they become obsolete very quicker than 
+AB/Siemens/ABB. Schneider change their lines too much
+
+4. Schneider's software for Square-D, Telemecanique is lacking, support is non-existent.
+
+5. Schneider's PLC tech support is free within 24h, 
+-all their ethernet based devices (plcs, drives) have built in web servers and have for years
+-most ethernet products have dual ports (allowing easy ring type configuration
+- all the current plcs use a single programming package (UnityPro)
+- this same programming package is used to setup all the communications
+- this same programming package has built in DTM/FDT capability (useful for setting up instrumentation devices etc)
+- UnityPro has user defined types and user defined function blocks that are even editable online (to a degree) (AB only discovered Add On function blocks recently and they are still not editable online)
+- UnityPro supports all 5 IEC languages (FB, LAD, ST, IL, SFC) within the standard package
+- IO scanning function allows communication networks to be setup by simply filling out a configuration table (no plc code to write). This can be used to communicate with other plcs, drives and io devices
+- PLCs (ethernet) have built in DHCP servers and a FDR (faulty device replacement) capability which saves and can restore ethernet devices configuration
+-natively supports ModbusTCP, EthernetIP, Profibus, Can, Modbus
+- etc etc
+
+
+
+6.annual Tech support is fees is too  much
+7. Schneider's Unity Pro software is slow

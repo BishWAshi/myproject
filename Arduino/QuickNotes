@@ -1,0 +1,26 @@
+### Stepper Motors Math
+
+#What value to put into GRBL for steps?
+A typical stepper motor has 200 steps PER revolution. These are known as FULL steps or 1.8° per step. This setting has the most torque and is the fastest, however not the smoothest.
+Most of these machines will list the kind and size of lead/ballscrew it has. On my 3020, the lead screw is 1404.
+14: 14mm diameter of the screw thread (OD)
+04: 4mm pitch (or the distance between threads)
+We are mostly concerned with the 04 number since it describes the amount of linear travel something connected to the lead screw will travel with ONE revolution. So a 1205 thread is 12mm diameter and 5mm thread size, so on and so forth. This also applies to ball screws, 1603 is 16mm diameter and 3mm thread size.
+--
+Now we can connect the two numbers together.
+Stepper: 200/rev
+Leadscrew: 4mm/rev
+The settings in GRBL call for a PER mm number so its a simple math really.
+200/4 = 50 steps to make something travel 1mm
+(if we have a 3mm thread, it would be 200/3 etc etc)
+50 is the number I put in GRBL
+--
+Heres where we get fancy, micro stepping.
+I have my CNC machine set up to be 1/8 micro stepping, which means each step is divided into 8 microsteps.
+200 steps x 8 micro steps = 1600 total steps/rev
+The same math applies
+1600/4 = 400 steps to make something move 1mm (again, if your thread is different, than the divider number will be different)
+400 is the number I put into GRBL
+--
+The more steps the smoother the motions, but slower it will be and less power on the torque.
+THANKFULLY, the Chinese CNC machines are all metric, which makes this math very simple. If these were ACME threads, there would be some metric/imperial conversions which would result in some very odd numbers.

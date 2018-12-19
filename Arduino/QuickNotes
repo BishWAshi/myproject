@@ -24,3 +24,9 @@ The same math applies
 --
 The more steps the smoother the motions, but slower it will be and less power on the torque.
 THANKFULLY, the Chinese CNC machines are all metric, which makes this math very simple. If these were ACME threads, there would be some metric/imperial conversions which would result in some very odd numbers.
+
+
+## Control Motors using Arduino from webpages
+https://electronicsforu.com/electronics-projects/hardware-diy/web-based-device-controller-arduino-board/2
+
+## Control I/O of arduino from PatTm payment status.

@@ -1,0 +1,6 @@
+https://www.bogotobogo.com/cplusplus/quiz_bit_manipulation.php
+https://librambutan.readthedocs.io/en/latest/lang/cpp/bitshift.html
+
+https://stackoverflow.com/questions/18591924/how-to-use-bitmask
+https://www.geeksforgeeks.org/bitmasking-and-dynamic-programming-set-1-count-ways-to-assign-unique-cap-to-every-person/
+https://www.learncpp.com/cpp-tutorial/3-8a-bit-flags-and-bit-masks/

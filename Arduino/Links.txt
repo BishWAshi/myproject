@@ -18,5 +18,12 @@ http://www.cplusplus.com/doc/tutorial/
 https://stackoverflow.com/questions/2506400/how-to-compile-and-run-c-files-from-within-notepad-using-nppexec-plugin
 https://cygwin.com/
 
+//C++ Books:=====================
+http://www.lmpt.univ-tours.fr/~volkov/C++.pdf
+http://www.cplusplus.com/files/tutorial.pdf
+https://www.tutorialspoint.com/cplusplus/
+http://cds.iisc.ac.in/wp-content/uploads/DS286.AUG2016.Lab2_.cpp_tutorial.pdf
+https://www.mimuw.edu.pl/~mrp/cpp/SecretCPP/O'Reilly%20-%20Practical%20C++%20Programming.pdf
+
 //mATHEMATICS=======================
 https://www.varsitytutors.com/hotmath/hotmath_help/topics/perimeter-area-volume

@@ -27,3 +27,13 @@ https://www.mimuw.edu.pl/~mrp/cpp/SecretCPP/O'Reilly%20-%20Practical%20C++%20Pro
 
 //mATHEMATICS=======================
 https://www.varsitytutors.com/hotmath/hotmath_help/topics/perimeter-area-volume
+
+
+========================Notepad++ or Sublime Text===========================
+https://www.thecrazyprogrammer.com/2015/08/configure-notepad-to-run-c-cpp-and-java-programs.html
+https://www.thecrazyprogrammer.com/2017/04/how-to-run-c-and-c-program-in-sublime-text.html
+http://www.edparrish.net/common/npp4c.html
+
+====================python in Sublime Text ===============
+https://www.thecrazyprogrammer.com/2017/04/how-to-run-python-program-in-sublime-text.html
+https://www.cs.auckland.ac.nz/courses/compsci105s1c/resources/SetUpNotePad++.pdf

@@ -2,3 +2,7 @@ Siemens License
 http://www.plc-courses.com/2017/09/simatic-ekb-install-siemens-activation.html
 
 http://plcforum.uz.ua/viewtopic.php?f=1&t=25726&sid=e6cb8a709feb035d0707f333358adca4
+
+Manuals:
+https://electrical-engineering-portal.com/download-center/books-and-guides/siemens-basics-of-energy
+

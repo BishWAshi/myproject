@@ -1,0 +1,5 @@
+Login Creation:
+
+https://www.keycloak.org/docs/1.9/server_admin_guide/topics/identity-broker/social/stack-overflow.html
+https://educationcenter.janrain.com/home/social-login-overview
+https://www.mockplus.com/blog/post/sign-up-login-design-practices
